@@ -9,12 +9,12 @@ permissions:
   contents: read
 
 env:
-  APP_NAME: s3-accenture
-  BUCKET_BLUE: s3-accenture-blue
-  BUCKET_GREEN: s3-accenture-green
-  CONFIG_BUCKET: s3-accenture-config
-  ACTIVE_ENV_KEY: dev.txt
-  CLOUDFRONT_DIST_ID: E1234567
+  APP_NAME: ${{ secrets.APP_NAME }}
+  BUCKET_BLUE: ${{ secrets.BUCKET_BLUE }}
+  BUCKET_GREEN: ${{ secrets.BUCKET_GREEN }}
+  CONFIG_BUCKET: ${{ secrets.CONFIG_BUCKET }}
+  ACTIVE_ENV_KEY: ${{ secrets.ACTIVE_ENV_KEY }}
+  CLOUDFRONT_DIST_ID: ${{ secrets.CLOUDFRONT_DIST_ID }}
 
 jobs:
   deploy:
@@ -27,8 +27,8 @@ jobs:
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::123456789012:role/github-actions-deployer
-          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Install Node
         uses: actions/setup-node@v4
@@ -41,7 +41,6 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      # Determine Active Environment (Blue or Green)
       - name: Get active environment from S3
         id: active
         run: |
@@ -58,7 +57,6 @@ jobs:
             echo "rollback_bucket=$BUCKET_GREEN" >> $GITHUB_OUTPUT
           fi
 
-      # Upload artifacts (safe upload: temp prefix then promote)
       - name: Upload to S3 temp prefix
         run: |
           aws s3 sync ./dist s3://${{ steps.active.outputs.target_bucket }}/tmp --delete
@@ -69,7 +67,6 @@ jobs:
           aws s3 sync s3://${{ steps.active.outputs.target_bucket }}/tmp s3://${{ steps.active.outputs.target_bucket }}/
           aws s3 rm s3://${{ steps.active.outputs.target_bucket }}/tmp --recursive
 
-      # Smoke Test (simple availability test)
       - name: Perform smoke test
         id: smoketest
         run: |
@@ -82,20 +79,17 @@ jobs:
             exit 1
           fi
 
-      # Swap Environment (update configuration bucket)
       - name: Update active environment
         run: |
           echo "${{ steps.active.outputs.target }}" > active_env.txt
           aws s3 cp active_env.txt s3://$CONFIG_BUCKET/$ACTIVE_ENV_KEY
 
-      # CloudFront Cache Invalidation
       - name: Create CloudFront invalidation
         run: |
           aws cloudfront create-invalidation \
             --distribution-id $CLOUDFRONT_DIST_ID \
             --paths "/*"
 
-      # Rollback on failure
       - name: Rollback if smoke test failed
         if: failure()
         run: |
