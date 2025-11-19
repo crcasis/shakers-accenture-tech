@@ -1,4 +1,4 @@
-name: Deploy Blue/Green s3 accenture
+name: Deploy Blue/Green S3 Accenture
 
 on:
   push:
@@ -63,7 +63,6 @@ jobs:
 
       - name: Promote temp prefix to root
         run: |
-          aws s3 rm s3://${{ steps.active.outputs.target_bucket }}/ --recursive
           aws s3 sync s3://${{ steps.active.outputs.target_bucket }}/tmp s3://${{ steps.active.outputs.target_bucket }}/
           aws s3 rm s3://${{ steps.active.outputs.target_bucket }}/tmp --recursive
 
@@ -90,10 +89,11 @@ jobs:
             --distribution-id $CLOUDFRONT_DIST_ID \
             --paths "/*"
 
-      - name: Rollback if smoke test failed
+    # Rollback automático si falla cualquier paso
+    post:
+      - name: Rollback if deploy failed
         if: failure()
         run: |
-          echo "Reverting active environment..."
-          aws s3 cp s3://$CONFIG_BUCKET/$ACTIVE_ENV_KEY env_backup.txt
+          echo "Rollback triggered..."
           echo "${{ steps.active.outputs.rollback_bucket }}" > active_env.txt
           aws s3 cp active_env.txt s3://$CONFIG_BUCKET/$ACTIVE_ENV_KEY
