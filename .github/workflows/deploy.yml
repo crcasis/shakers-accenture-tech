@@ -90,7 +90,7 @@ jobs:
             --distribution-id $CLOUDFRONT_DIST_ID \
             --paths "/*"
 
-    # Rollback automático si falla cualquier paso
+    # Auto rollback in case fails any step
       - name: Rollback if deploy failed
         if: failure()
         run: |
