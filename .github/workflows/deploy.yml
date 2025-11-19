@@ -15,6 +15,7 @@ env:
   CONFIG_BUCKET: ${{ secrets.CONFIG_BUCKET }}
   ACTIVE_ENV_KEY: ${{ secrets.ACTIVE_ENV_KEY }}
   CLOUDFRONT_DIST_ID: ${{ secrets.CLOUDFRONT_DIST_ID }}
+  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
 jobs:
   deploy:
@@ -96,3 +97,14 @@ jobs:
           echo "Rollback triggered..."
           echo "${{ steps.active.outputs.rollback_bucket }}" > active_env.txt
           aws s3 cp active_env.txt s3://$CONFIG_BUCKET/$ACTIVE_ENV_KEY
+
+      - name: Notify Slack
+        if: always()
+        run: |
+          STATUS="SUCCESS"
+          if [ "${{ job.status }}" != "success" ]; then
+            STATUS="FAILED"
+          fi
+          PAYLOAD="{\"text\": \"Deployment of $APP_NAME (${GITHUB_REF_NAME}) finished with status: $STATUS\"}"
+          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK
+  
