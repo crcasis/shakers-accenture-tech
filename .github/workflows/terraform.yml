@@ -1,0 +1,70 @@
+name: Terraform CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - 'dev/**'
+      - 'feature/**'
+      - 'bugfix/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    name: Terraform
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: us-east-1
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.14.0
+
+    - name: Setup AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Terraform Init
+      run: |
+        if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+          cd envs/prod
+        else
+          cd envs/dev
+        fi
+        terraform init -reconfigure
+
+    - name: Terraform Format Check
+      run: |
+        terraform fmt -check -recursive
+
+    - name: Terraform Validate
+      run: |
+        if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+          cd envs/prod
+        else
+          cd envs/dev
+        fi
+        terraform validate
+
+    - name: Terraform Plan / Apply
+      id: terraform
+      run: |
+        if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+          echo "Branch main detected → running terraform apply"
+          cd envs/prod
+          terraform apply -auto-approve
+        else
+          echo "Non-main branch detected → running terraform plan"
+          cd envs/dev
+          terraform plan -out=tfplan
