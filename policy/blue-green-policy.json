@@ -1,0 +1,44 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "S3BlueGreen",
+        "Effect": "Allow",
+        "Action": [
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ],
+        "Resource": [
+          "arn:aws:s3:::s3-accenture-blue",
+          "arn:aws:s3:::s3-accenture-blue/*",
+          "arn:aws:s3:::s3-accenture-green",
+          "arn:aws:s3:::s3-accenture-green/*",
+          "arn:aws:s3:::s3-accenture-config",
+          "arn:aws:s3:::s3-accenture-config/*"
+        ]
+      },
+      {
+        "Sid": "CloudFrontManagement",
+        "Effect": "Allow",
+        "Action": [
+          "cloudfront:GetDistribution",
+          "cloudfront:GetDistributionConfig",
+          "cloudfront:UpdateDistribution",
+          "cloudfront:CreateInvalidation"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Sid": "ParameterStoreActiveEnv",
+        "Effect": "Allow",
+        "Action": [
+          "ssm:GetParameter",
+          "ssm:PutParameter"
+        ],
+        "Resource": "arn:aws:ssm:*:*:parameter/s3-accenture/active_env"
+      }
+    ]
+  }
+  

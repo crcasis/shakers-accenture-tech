@@ -98,6 +98,23 @@ jobs:
           echo "${{ steps.active.outputs.rollback_bucket }}" > active_env.txt
           aws s3 cp active_env.txt s3://$CONFIG_BUCKET/$ACTIVE_ENV_KEY
 
+      - name: Save minimal evidence
+        if: always()
+        run: |
+          mkdir -p evidence
+          echo "Smoke test status: ${{ steps.smoketest.outcome }}" > evidence/smoke_test.txt
+          echo "Active environment: ${{ steps.active.outputs.target }}" > evidence/active_env.txt
+          echo "Deployed branch: ${GITHUB_REF_NAME}" >> evidence/active_env.txt
+          date +"Deployment timestamp: %Y-%m-%d %H:%M:%S" >> evidence/active_env.txt
+  
+      - name: Upload evidence artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-evidence
+          path: evidence/
+  
+
       - name: Notify Slack
         if: always()
         run: |
