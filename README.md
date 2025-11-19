@@ -11,10 +11,10 @@ infra/
 ├── envs/
 │   ├── dev/
 │   │   ├── main.tf
-│   │   └── dev.auto.tfvars
+│   │   └── auto.tfvars
 │   └── prod/
 │       ├── main.tf
-│       └── prod.auto.tfvars
+│       └── auto.tfvars
 └── provider.tf
 ```
 
