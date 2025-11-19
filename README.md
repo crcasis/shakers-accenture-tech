@@ -43,7 +43,7 @@ IAM: Aplica políticas necesarias para permitir acceso desde CloudFront al bucke
 
 Backend remoto (opcional)
 Se puede configurar un backend remoto en S3 con DynamoDB para locking:
-
+```
 terraform {
   backend "s3" {
     bucket         = "terraform-state-<env>"
@@ -53,3 +53,5 @@ terraform {
     encrypt        = true
   }
 }
+```
+
