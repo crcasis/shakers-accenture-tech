@@ -90,7 +90,6 @@ jobs:
             --paths "/*"
 
     # Rollback automático si falla cualquier paso
-    post:
       - name: Rollback if deploy failed
         if: failure()
         run: |
