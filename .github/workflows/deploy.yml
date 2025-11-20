@@ -3,6 +3,8 @@ name: Deploy Blue/Green S3 Accenture
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'src/**'
 
 permissions:
   id-token: write
