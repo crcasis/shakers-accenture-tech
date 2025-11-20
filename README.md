@@ -66,7 +66,7 @@ terraform {
  CloudFront BLUE      CloudFront GREEN
     + WAF                 + WAF
         │                  │
-     OAC/OAI            OAC/OAI
+     OAC                 OAC
         │                  │
    S3 BUCKET BLUE     S3 BUCKET GREEN
 ```
