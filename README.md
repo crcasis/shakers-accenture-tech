@@ -55,3 +55,20 @@ terraform {
 }
 ```
 
+## Diagram architecture
+
+![Diagram architecture](diagram/accenture-architecture.pdf)
+```
+
+          Route53 (A/AAAA Alias)
+                 │
+        ┌────────┴─────────┐
+        ▼                  ▼
+ CloudFront BLUE      CloudFront GREEN
+    + WAF                 + WAF
+        │                  │
+     OAC/OAI            OAC/OAI
+        │                  │
+   S3 BUCKET BLUE     S3 BUCKET GREEN
+```
+
