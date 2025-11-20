@@ -31,17 +31,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Install Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build frontend
-        run: npm run build
-
       - name: Get active environment from S3
         id: active
         run: |
@@ -58,9 +47,9 @@ jobs:
             echo "rollback_bucket=$BUCKET_GREEN" >> $GITHUB_OUTPUT
           fi
 
-      - name: Upload to S3 temp prefix
+      - name: Upload static site to S3 temp prefix
         run: |
-          aws s3 sync ./dist s3://${{ steps.active.outputs.target_bucket }}/tmp --delete
+          aws s3 sync ./src s3://${{ steps.active.outputs.target_bucket }}/tmp --delete
 
       - name: Promote temp prefix to root
         run: |
@@ -70,7 +59,7 @@ jobs:
       - name: Perform smoke test
         id: smoketest
         run: |
-          URL="https://${{ steps.active.outputs.target }}.example.com/index.html"
+          URL="https://${{ steps.active.outputs.target }}.accenture.com/index.html"
           echo "Testing $URL ..."
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" $URL)
           echo "Status: $STATUS"
@@ -90,7 +79,6 @@ jobs:
             --distribution-id $CLOUDFRONT_DIST_ID \
             --paths "/*"
 
-    # Auto rollback in case fails any step
       - name: Rollback if deploy failed
         if: failure()
         run: |
@@ -114,7 +102,6 @@ jobs:
           name: deployment-evidence
           path: evidence/
   
-
       - name: Notify Slack
         if: always()
         run: |
@@ -124,4 +111,3 @@ jobs:
           fi
           PAYLOAD="{\"text\": \"Deployment of $APP_NAME (${GITHUB_REF_NAME}) finished with status: $STATUS\"}"
           curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK
-  
