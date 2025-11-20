@@ -57,7 +57,6 @@ terraform {
 
 ## Diagram architecture
 
-![Diagram architecture](diagram/accenture-architecture.pdf)
 ```
 
           Route53 (A/AAAA Alias)
